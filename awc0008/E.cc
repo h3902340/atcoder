@@ -4,45 +4,53 @@ using namespace std;
 
 #define ll long long
 const int N = 2e5;
-int tmp[N];
-ll mergeSort(vector<int>& A, int l, int r) {
-    if (l + 1 == r) {
-        return 0;
-    }
-    int mid = (l + r) >> 1;
-    ll a = mergeSort(A, l, mid);
-    ll b = mergeSort(A, mid, r);
-    int i = l;
-    int j = mid;
-    int k = 0;
-    ll res = a + b;
-    while (i < mid && j < r) {
-        if (A[i] > A[j]) {
-            res += j - k - l;
-            tmp[k++] = A[j++];
-        } else {
-            tmp[k++] = A[i++];
+class FenwickTree {
+    int tree[N + 1];
+    int sz;
+
+   public:
+    FenwickTree(int n) {
+        sz = n + 1;
+        for (int i = 1; i < sz; i++) {
+            tree[i] = 0;
         }
     }
-    for (; i < mid; i++) {
-        tmp[k++] = A[i];
+    void add(int i, int delta) {
+        i++;
+        while (i < sz) {
+            tree[i] += delta;
+            i += i & -i;
+        }
     }
-    for (; j < r; j++) {
-        tmp[k++] = A[j];
+    int query(int i) {
+        i++;
+        int s = 0;
+        while (i > 0) {
+            s += tree[i];
+            i -= i & -i;
+        }
+        return s;
     }
-    for (int x = 0; x < k; x++) {
-        A[l + x] = tmp[x];
-    }
-    return res;
-}
+};
+
 int main() {
     int N;
     cin >> N;
     vector<int> A(N);
+    vector<int> inv(N);
     for (int i = 0; i < N; i++) {
         cin >> A[i];
+        inv[A[i] - 1] = i;
     }
-    ll res = mergeSort(A, 0, N);
+    FenwickTree t(N);
+    ll res = 0;
+    for (int i = 0; i < N; i++) {
+        int j = inv[i];
+        int k = t.query(j);
+        res += j - i + k;
+        t.add(0, 1);
+        t.add(j, -1);
+    }
     cout << res << endl;
     return 0;
 }
